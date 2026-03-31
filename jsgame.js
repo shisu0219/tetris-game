@@ -1,24 +1,25 @@
 // 每一格的间距，即一个小方块的尺寸
 const Spacing = 20;
 
-// ========== 模块1 开始（新增双玩家核心变量） ==========
-// 玩家1（WASD控制）- 适配你的俄罗斯方块Canvas尺寸
+// 玩家1（WASD控制）- 适配俄罗斯方块Canvas尺寸
 const player1 = {
   x: 50, y: 300, width: 40, height: 40, speed: 5,
   up: false, down: false, left: false, right: false, color: '#ff0000'
 };
+
 // 玩家2（方向键控制）
 const player2 = {
   x: 550, y: 300, width: 40, height: 40, speed: 5,
   up: false, down: false, left: false, right: false, color: '#0000ff'
 };
+
 // 键盘状态缓存（解决按键连按问题）
 const keyState = {};
-// ========== 模块1 结束 ==========
 
-// ========== 音效相关（核心修改：授权逻辑绑定到游戏开始按钮） ==========
-let audioAuthorized = false; // 音频授权标记
+// 音频授权标记
+let audioAuthorized = false;
 
+// 播放音效函数
 function playSound(audioId) {
     if (!audioAuthorized) return; // 未授权不播放
     const audio = document.getElementById(audioId);
@@ -47,6 +48,7 @@ function playSound(audioId) {
     }
 }
 
+// 音频授权函数
 function authorizeAudio() {
     if (audioAuthorized) return;
     // 触发授权（播放后暂停）- 异步执行，避免并发冲突
@@ -70,11 +72,8 @@ function authorizeAudio() {
     setTimeout(() => authorizeSingleAudio(overAudio), 200);
     
     audioAuthorized = true;
-    // 移除测试音效（避免自动播放触发报错）
-    // playSound('dropSound');
-    // setTimeout(() => playSound('clearSound'), 500);
-    // setTimeout(() => playSound('gameOverSound'), 1000);
 }
+
 // 各种形状的编号，0 代表没有形状
 const NoShape = 0;
 const ZShape = 1;
@@ -107,23 +106,24 @@ const Difficulty = {
     hard: 250
 };
 
-/*
- * 方块类
- */
+// 方块类
 function Block() {
     this.data = [[], [], [], []];
 }
 
+// 方块初始化方法
 Block.prototype.Block = function () {
     this.born();
 };
 
+// 方块生成方法
 Block.prototype.born = function () {
     this.shape_id = Math.floor(Math.random() * 7) + 1;
     this.data = Shapes[this.shape_id];
     this.color = Colors[this.shape_id];
 };
 
+// 方块平移方法
 Block.prototype.translate = function (row, col) {
     var copy = [];
     for (var i = 0; i < 4; i++) {
@@ -135,6 +135,7 @@ Block.prototype.translate = function (row, col) {
     return copy;
 };
 
+//方块旋转方法
 Block.prototype.rotate = function () {
     var copy = [[], [], [], []];
     for (var i = 0; i < 4; i++) {
@@ -144,9 +145,7 @@ Block.prototype.rotate = function () {
     return copy;
 };
 
-/*
- * Map 类
- */
+// Map 类
 function Map(w, h) {
     this.width = w;
     this.height = h;
@@ -156,14 +155,16 @@ function Map(w, h) {
     }
 }
 
+// 创建新行方法
 Map.prototype.newLine = function () {
     var shapes = [];
     for (var col = 0; col < this.width; col++) {
         shapes[col] = NoShape;
     }
-    return shapes;
+   return shapes;
 };
 
+// 检查行是否被填满
 Map.prototype.isFullLine = function (row) {
     var line = this.lines[row];
     for (var col = 0; col < this.width; col++) {
@@ -172,6 +173,7 @@ Map.prototype.isFullLine = function (row) {
     return true;
 };
 
+// 检查碰撞方法
 Map.prototype.isCollide = function (data) {
     for (var i = 0; i < 4; i++) {
         var row = data[i].row;
@@ -184,6 +186,7 @@ Map.prototype.isCollide = function (data) {
     return false;
 };
 
+// 追加形状并处理消除行方法
 Map.prototype.appendShape = function (shape_id, data) {
     for (var i = 0; i < 4; i++) {
         var row = data[i].row;
@@ -202,9 +205,7 @@ Map.prototype.appendShape = function (shape_id, data) {
     return clearedRows;
 };
 
-/*
- * 游戏逻辑类
- */
+// 游戏逻辑类
 function GameModel(w, h, speed) {
     this.map = new Map(w, h);
     this.currentBlock = new Block();
@@ -219,6 +220,7 @@ function GameModel(w, h, speed) {
     this.isCurrentBlockFast = false; // 仅当前方块加速标记
 }
 
+// 创建新方块方法
 GameModel.prototype.CreateNewBlock = function () {
     this.currentBlock = this.nextBlock;
     this.row = 1;
@@ -231,18 +233,21 @@ GameModel.prototype.CreateNewBlock = function () {
     this.speed = this.baseSpeed;
 };
 
+// 向左移动方法
 GameModel.prototype.left = function () {
     this.col--;
     var temp = this.currentBlock.translate(this.row, this.col);
     if (this.map.isCollide(temp)) this.col++;
 };
 
+// 向右移动方法
 GameModel.prototype.right = function () {
     this.col++;
     var temp = this.currentBlock.translate(this.row, this.col);
     if (this.map.isCollide(temp)) this.col--;
 };
 
+// 旋转方法
 GameModel.prototype.rotate = function () {
     if (this.currentBlock.shape_id === SquareShape) return;
 
@@ -282,14 +287,14 @@ GameModel.prototype.rotate = function () {
     }
 };
 
-// 新增：设置当前方块加速（仅对当前方块生效）
+// 设置当前方块加速方法（仅对当前方块生效）
 GameModel.prototype.setCurrentBlockFast = function (isFast) {
     this.isCurrentBlockFast = isFast;
     // 加速时速度改为基础速度的1/5（可自定义，比如1/10）
     this.speed = isFast ? this.baseSpeed / 5 : this.baseSpeed;
 };
 
-// 修复分数统计的 down 方法 + 新增音效播放
+// 下落方法（包含分数统计和音效播放）
 GameModel.prototype.down = function () {
     var old = this.currentBlock.translate(this.row, this.col);
     this.row++;
@@ -305,7 +310,7 @@ GameModel.prototype.down = function () {
         if (clearedRows > 0) {
             playSound('clearSound');
             // 新增：创建消除特效
-        createEliminateEffect();
+            createEliminateEffect();
         }
         if (clearedRows === 1) return 10;
         if (clearedRows === 2) return 30;
@@ -316,6 +321,7 @@ GameModel.prototype.down = function () {
     return 0;
 };
 
+// 交换当前方块和下一个方块方法
 GameModel.prototype.swapNextBlock = function() {
     var originalRow = this.row;
     var originalCol = this.col;
@@ -371,7 +377,7 @@ let rightScore = 0;
 let leftGameOver = false;
 let rightGameOver = false;
 
-// ========== 新增：双人对战模式变量 ==========
+// 双人对战模式变量
 let twoPlayerLeftModel = null;
 let twoPlayerRightModel = null;
 let twoPlayerLeftTick = null;
@@ -380,9 +386,8 @@ let twoPlayerLeftScore = 0;
 let twoPlayerRightScore = 0;
 let twoPlayerLeftGameOver = false;
 let twoPlayerRightGameOver = false;
-// ========== 新增结束 ==========
 
-// 单页面模式函数
+// 单页面模式入口函数
 function startSingleMode() {
     currentDifficulty = document.getElementById('difficulty').value;
     document.getElementById('modeSelect').style.display = 'none';
@@ -390,7 +395,7 @@ function startSingleMode() {
     currentMode = 'single';
 }
 
-// 核心修改：单页面开始时先授权音频
+// 单页面开始函数（包含音频授权）
 function startSingle() {
     // 第一步：音频授权
     authorizeAudio();
@@ -406,12 +411,13 @@ function startSingle() {
     loopSingle();
 }
 
+// 单页面暂停函数
 function pauseSingle() {
     singleWaiting = !singleWaiting;
     document.getElementById('singlePauseBtn').textContent = singleWaiting ? '继续' : '暂停';
 }
 
-// 删除重复的loopSingle定义，只保留这一个
+// 单页面游戏循环函数
 function loopSingle() {
     clearInterval(singleTickInterval);
     singleTickInterval = setInterval(() => {
@@ -420,14 +426,13 @@ function loopSingle() {
         // 先重绘画面（无论是否消除行）
         paintSingle();
         if (result === 'gameover') {
-        clearInterval(singleTickInterval);
-        // 游戏结束播放音效（优先播放）
-        playSound('gameOverSound');
-        // 注释/删除alert弹窗，避免遮挡音效播放
-        // alert("Game Over");
-        console.log("单页面游戏结束");
-        return;
-    }
+            clearInterval(singleTickInterval);
+            // 游戏结束播放音效（优先播放）
+            playSound('gameOverSound');
+            // 注释/删除alert弹窗，避免遮挡音效播放
+            console.log("单页面游戏结束");
+            return;
+        }
         if (typeof result === 'number' && result > 0) {
             singleScore += result;
             updateScores(); // 分数更新
@@ -436,6 +441,7 @@ function loopSingle() {
     }, singleModel.speed);
 }
 
+// 双页面模式入口函数
 function startDualMode() {
     // 1. 获取难度
     currentDifficulty = document.getElementById('difficulty').value || 'medium';
@@ -459,7 +465,7 @@ function startDualMode() {
     updateDualHighlight();
 }
 
-// ========== 新增：双人对战模式入口函数 ==========
+// 双人对战模式入口函数
 function startTwoPlayerMode() {
     // 1. 获取难度
     currentDifficulty = document.getElementById('difficulty').value || 'medium';
@@ -476,9 +482,8 @@ function startTwoPlayerMode() {
     // 5. 更新分数显示
     updateTwoPlayerScores();
 }
-// ========== 新增结束 ==========
 
-// 核心修改：双页面开始时先授权音频
+// 双页面开始函数（包含音频授权）
 function startDual() {
     // 第一步：音频授权
     authorizeAudio();
@@ -528,7 +533,7 @@ function startDual() {
     paintDualRight();
 }
 
-// ========== 新增：双人对战启动函数（核心修改：添加音频授权） ==========
+// 双人对战启动函数（包含音频授权）
 function startTwoPlayer() {
     // 第一步：音频授权
     authorizeAudio();
@@ -575,8 +580,8 @@ function startTwoPlayer() {
     paintTwoPlayerLeft();
     paintTwoPlayerRight();
 }
-// ========== 新增结束 ==========
 
+// 双页面左侧游戏循环函数
 function loopDualLeft() {
     // 清除旧定时器（避免重复）
     if (leftTick) clearInterval(leftTick);
@@ -594,10 +599,9 @@ function loopDualLeft() {
             leftGameOver = true;
             playSound('gameOverSound');
             // 注释/删除alert弹窗
-            // alert("左侧游戏结束！");
             console.log("左侧游戏结束");
             return;
-}
+        }
         
         // 消除行加分+音效
         if (typeof result === 'number' && result > 0) {
@@ -611,7 +615,7 @@ function loopDualLeft() {
     }, leftModel.speed); // 使用难度对应的速度
 }
 
-// ========== 新增：双人对战左侧下落循环 ==========
+// 双人对战左侧下落循环函数
 function loopTwoPlayerLeft() {
     if (twoPlayerLeftTick) clearInterval(twoPlayerLeftTick);
     twoPlayerLeftTick = setInterval(() => {
@@ -625,7 +629,6 @@ function loopTwoPlayerLeft() {
             twoPlayerLeftGameOver = true;
             playSound('gameOverSound');
             // 注释/删除alert弹窗
-            // alert("左侧玩家游戏结束！");
             console.log("左侧玩家游戏结束");
             return;
         }
@@ -638,7 +641,7 @@ function loopTwoPlayerLeft() {
     }, twoPlayerLeftModel.speed);
 }
 
-// 新增：双人对战右侧下落循环
+// 双人对战右侧下落循环函数
 function loopTwoPlayerRight() {
     if (twoPlayerRightTick) clearInterval(twoPlayerRightTick);
     twoPlayerRightTick = setInterval(() => {
@@ -652,7 +655,6 @@ function loopTwoPlayerRight() {
             twoPlayerRightGameOver = true;
             playSound('gameOverSound');
             // 注释/删除alert弹窗
-            // alert("右侧玩家游戏结束！");
             console.log("右侧玩家游戏结束");
             return;
         }
@@ -664,9 +666,8 @@ function loopTwoPlayerRight() {
         }
     }, twoPlayerRightModel.speed);
 }
-// ========== 新增结束 ==========
 
-// 删除重复的loopDualRight定义，只保留这一个
+// 双页面右侧游戏循环函数
 function loopDualRight() {
     // 清除旧定时器
     if (rightTick) clearInterval(rightTick);
@@ -680,10 +681,9 @@ function loopDualRight() {
             rightGameOver = true;
             playSound('gameOverSound');
             // 注释/删除alert弹窗
-            // alert("右侧游戏结束！");
             console.log("右侧游戏结束");
             return;
-}
+        }
         
         if (typeof result === 'number' && result > 0) {
             rightScore += result;
@@ -695,6 +695,7 @@ function loopDualRight() {
     }, rightModel.speed);
 }
 
+// 双页面高光更新函数
 function updateDualHighlight() {
     // 1. 获取容器元素（关键：ID必须和HTML中的一致）
     const leftContainer = document.getElementById('dualLeftContainer');
@@ -722,6 +723,7 @@ function updateDualHighlight() {
     }
 }
 
+// 双页面游戏切换函数
 function switchDualGame() {
     if (!leftModel || !rightModel) return;
     activeDualGame = activeDualGame === 'left' ? 'right' : 'left';
@@ -733,7 +735,7 @@ function switchDualGame() {
     }
 }
 
-// 通用函数
+// 分数更新函数
 function updateScores() {
     if (currentMode === 'single') {
         const singleScoreEl = document.getElementById('singleScore');
@@ -750,7 +752,7 @@ function updateScores() {
     }
 }
 
-// ========== 新增：双人对战分数更新 ==========
+// 双人对战分数更新函数
 function updateTwoPlayerScores() {
     const leftScoreEl = document.getElementById('twoPlayerLeftScore');
     const rightScoreEl = document.getElementById('twoPlayerRightScore');
@@ -759,8 +761,8 @@ function updateTwoPlayerScores() {
     if (rightScoreEl) rightScoreEl.textContent = twoPlayerRightScore;
     if (totalScoreEl) totalScoreEl.textContent = twoPlayerLeftScore + twoPlayerRightScore;
 }
-// ========== 新增结束 ==========
 
+// 单页面绘制函数
 function paintSingle() {
     if (!singleModel) return;
     const main = document.getElementById('singleMain');
@@ -810,6 +812,7 @@ function paintSingle() {
     }
 }
 
+// 双页面左侧绘制函数
 function paintDualLeft() {
     if (!leftModel) return;
     const main = document.getElementById('dualLeftMain');
@@ -856,6 +859,7 @@ function paintDualLeft() {
     }
 }
 
+// 双页面右侧绘制函数
 function paintDualRight() {
     if (!rightModel) return;
     const main = document.getElementById('dualRightMain');
@@ -902,7 +906,7 @@ function paintDualRight() {
     }
 }
 
-// ========== 新增：双人对战左侧绘制 ==========
+// 双人对战左侧绘制函数
 function paintTwoPlayerLeft() {
     if (!twoPlayerLeftModel) return;
     const main = document.getElementById('twoPlayerLeftMain');
@@ -949,7 +953,7 @@ function paintTwoPlayerLeft() {
     }
 }
 
-// 新增：双人对战右侧绘制
+// 双人对战右侧绘制函数
 function paintTwoPlayerRight() {
     if (!twoPlayerRightModel) return;
     const main = document.getElementById('twoPlayerRightMain');
@@ -995,9 +999,8 @@ function paintTwoPlayerRight() {
         ctx2.fillRect(x+1, y+1, Spacing-2, Spacing-2);
     }
 }
-// ========== 新增结束 ==========
 
-// 核心修改：删除按键事件里嵌套的多余函数（moveDown/checkLines等）
+// 键盘按下事件处理函数
 document.onkeydown = function (evt) {
     evt.preventDefault();
     var key = evt.which;
@@ -1061,7 +1064,7 @@ document.onkeydown = function (evt) {
             }
         }
     }
-    // ========== 新增：双人对战模式按键逻辑 ==========
+    // 双人对战模式按键逻辑
     else if (currentMode === 'twoPlayer' && twoPlayerLeftModel && twoPlayerRightModel) {
         // 左侧玩家：WASD 控制左面板
         if (!twoPlayerLeftGameOver) {
@@ -1119,10 +1122,9 @@ document.onkeydown = function (evt) {
             }
         }
     }
-    // ========== 新增结束 ==========
 };
 
-// 新增：键盘松开事件（↓/S键松开时恢复当前方块基础速度）
+// 键盘松开事件处理函数（↓/S键松开时恢复当前方块基础速度）
 document.onkeyup = function (evt) {
     evt.preventDefault();
     var key = evt.which;
@@ -1161,7 +1163,7 @@ document.onkeyup = function (evt) {
     }
 };
 
-//新增特效创建函数（全局作用域）
+// 消除特效创建函数（全局作用域）
 function createEliminateEffect() {
     // 根据当前模式获取游戏容器
     let container;
@@ -1176,15 +1178,25 @@ function createEliminateEffect() {
     }
     if (!container) return;
 
-    // 创建特效元素
-    const effect = document.createElement('div');
-    effect.className = 'eliminate-effect';
-    // 定位到容器中心
-    effect.style.left = '50%';
-    effect.style.top = '50%';
-    effect.style.transform = 'translate(-50%, -50%)';
-    container.appendChild(effect);
+    // 创建左侧特效
+    const leftEffect = document.createElement('div');
+    leftEffect.className = 'eliminate-effect';
+    leftEffect.style.left = '-50px';
+    leftEffect.style.top = '50%';
+    leftEffect.style.transform = 'translateY(-50%)';
+    container.appendChild(leftEffect);
+
+    // 创建右侧特效
+    const rightEffect = document.createElement('div');
+    rightEffect.className = 'eliminate-effect';
+    rightEffect.style.right = '-50px';
+    rightEffect.style.top = '50%';
+    rightEffect.style.transform = 'translateY(-50%)';
+    container.appendChild(rightEffect);
 
     // 动画结束后移除元素（避免DOM堆积）
-    setTimeout(() => effect.remove(), 800);
+    setTimeout(() => {
+        leftEffect.remove();
+        rightEffect.remove();
+    }, 800);
 }
