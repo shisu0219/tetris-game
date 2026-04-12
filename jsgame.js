@@ -436,7 +436,6 @@ function loopSingle() {
         if (typeof result === 'number' && result > 0) {
             singleScore += result;
             updateScores(); // 分数更新
-            document.getElementById("snd")?.play(); // 保留原有音效
         }
     }, singleModel.speed);
 }
@@ -603,11 +602,10 @@ function loopDualLeft() {
             return;
         }
         
-        // 消除行加分+音效
+        // 消除行加分
         if (typeof result === 'number' && result > 0) {
             leftScore += result;
             updateScores();
-            document.getElementById("snd")?.play();
         }
         
         // 强制重绘（关键：确保画面更新）
@@ -636,7 +634,6 @@ function loopTwoPlayerLeft() {
         if (typeof result === 'number' && result > 0) {
             twoPlayerLeftScore += result;
             updateTwoPlayerScores();
-            document.getElementById("snd")?.play();
         }
     }, twoPlayerLeftModel.speed);
 }
@@ -662,7 +659,6 @@ function loopTwoPlayerRight() {
         if (typeof result === 'number' && result > 0) {
             twoPlayerRightScore += result;
             updateTwoPlayerScores();
-            document.getElementById("snd")?.play();
         }
     }, twoPlayerRightModel.speed);
 }
@@ -688,7 +684,6 @@ function loopDualRight() {
         if (typeof result === 'number' && result > 0) {
             rightScore += result;
             updateScores();
-            document.getElementById("snd")?.play();
         }
         
         paintDualRight();
