@@ -1,7 +1,7 @@
 // 每一格的间距，即一个小方块的尺寸
 const Spacing = 20;
 
-// 玩家1（WASD控制）- 适配俄罗斯方块Canvas尺寸
+// 玩家1（WASD控制）- 适配叠界之巅·方块挑战赛Canvas尺寸
 const player1 = {
   x: 50, y: 300, width: 40, height: 40, speed: 5,
   up: false, down: false, left: false, right: false, color: '#ff0000'
