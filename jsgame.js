@@ -1179,8 +1179,6 @@ function createEliminateEffect() {
     }
     if (!gameCanvas) return;
 
-    // 获取画布的位置和尺寸
-    const rect = gameCanvas.getBoundingClientRect();
     const container = gameCanvas.parentElement;
 
     // 创建左侧特效
@@ -1188,8 +1186,8 @@ function createEliminateEffect() {
     leftEffect.className = 'eliminate-effect';
     leftEffect.style.position = 'absolute';
     leftEffect.style.left = '0';
-    leftEffect.style.bottom = '0';
-    leftEffect.style.transform = 'translate(-50%, 50%)';
+    leftEffect.style.top = '50%';
+    leftEffect.style.transform = 'translate(-50%, -50%)';
     container.appendChild(leftEffect);
 
     // 创建右侧特效
@@ -1197,8 +1195,8 @@ function createEliminateEffect() {
     rightEffect.className = 'eliminate-effect';
     rightEffect.style.position = 'absolute';
     rightEffect.style.right = '0';
-    rightEffect.style.bottom = '0';
-    rightEffect.style.transform = 'translate(50%, 50%)';
+    rightEffect.style.top = '50%';
+    rightEffect.style.transform = 'translate(50%, -50%)';
     container.appendChild(rightEffect);
 
     // 动画结束后移除元素（避免DOM堆积）
