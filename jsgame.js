@@ -1016,13 +1016,17 @@ document.onkeydown = function (evt) {
             case 39: case 68: singleModel.right(); paintSingle(); break;
             case 38: case 87: singleModel.rotate(); paintSingle(); break;
             case 40: case 83: 
-                singleModel.down(); 
-                paintSingle();
-                // 按下↓/S时，设置当前方块加速
-                singleModel.setCurrentBlockFast(true);
-                // 重启定时器（应用加速速度）
-                loopSingle();
-                break;
+                    var singleResult = singleModel.down(); 
+                    paintSingle();
+                    if (typeof singleResult === 'number' && singleResult > 0) {
+                        singleScore += singleResult;
+                        updateScores();
+                    }
+                    // 按下↓/S时，设置当前方块加速
+                    singleModel.setCurrentBlockFast(true);
+                    // 重启定时器（应用加速速度）
+                    loopSingle();
+                    break;
             case 32: singleModel.swapNextBlock(); paintSingle(); break;
         }
     } 
@@ -1085,8 +1089,12 @@ document.onkeydown = function (evt) {
                     paintTwoPlayerLeft(); 
                     break;
                 case 83: // S键
-                    twoPlayerLeftModel.down(); 
+                    var leftResult = twoPlayerLeftModel.down(); 
                     paintTwoPlayerLeft();
+                    if (typeof leftResult === 'number' && leftResult > 0) {
+                        twoPlayerLeftScore += leftResult;
+                        updateTwoPlayerScores();
+                    }
                     twoPlayerLeftModel.setCurrentBlockFast(true);
                     loopTwoPlayerLeft();
                     break;
@@ -1113,8 +1121,12 @@ document.onkeydown = function (evt) {
                     paintTwoPlayerRight(); 
                     break;
                 case 40: // ↓键
-                    twoPlayerRightModel.down(); 
+                    var rightResult = twoPlayerRightModel.down(); 
                     paintTwoPlayerRight();
+                    if (typeof rightResult === 'number' && rightResult > 0) {
+                        twoPlayerRightScore += rightResult;
+                        updateTwoPlayerScores();
+                    }
                     twoPlayerRightModel.setCurrentBlockFast(true);
                     loopTwoPlayerRight();
                     break;
