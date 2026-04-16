@@ -1035,8 +1035,12 @@ document.onkeydown = function (evt) {
                 case 39: case 68: leftModel.right(); paintDualLeft(); break;
                 case 38: case 87: leftModel.rotate(); paintDualLeft(); break;
                 case 40: case 83: 
-                    leftModel.down(); 
+                    var leftResult = leftModel.down(); 
                     paintDualLeft();
+                    if (typeof leftResult === 'number' && leftResult > 0) {
+                        leftScore += leftResult;
+                        updateScores();
+                    }
                     leftModel.setCurrentBlockFast(true);
                     loopDualLeft();
                     break;
@@ -1050,8 +1054,12 @@ document.onkeydown = function (evt) {
                 case 39: case 68: rightModel.right(); paintDualRight(); break;
                 case 38: case 87: rightModel.rotate(); paintDualRight(); break;
                 case 40: case 83: 
-                    rightModel.down(); 
+                    var rightResult = rightModel.down(); 
                     paintDualRight();
+                    if (typeof rightResult === 'number' && rightResult > 0) {
+                        rightScore += rightResult;
+                        updateScores();
+                    }
                     rightModel.setCurrentBlockFast(true);
                     loopDualRight();
                     break;
